@@ -16,11 +16,12 @@ export default class AppContainer extends Component {
   componentDidMount() {
     const threadId = this.props.match.params.threadId;
 
-    this._getComments(threadId);
-
-    setTimeout(() => {
-      this._getComments(threadId);
-    }, 5000)
+    this._getComments(threadId)
+      .then(_ => {
+        setTimeout(() => {
+          this._getComments(threadId);
+        }, 5000)
+      });
   }
 
   _getComments = (threadId) => {
@@ -31,7 +32,10 @@ export default class AppContainer extends Component {
       .then(R.path(['data', 'children']))
       .then(R.map(R.prop('data')))
       .then(comments => this.setState({
-        comments:
+        comments: R.pipe(
+          R.concat(this.state.comments),
+          R.uniqWith((a, b) => a.id === b.id)
+        )(comments)
       }))
   }
 
